@@ -3,6 +3,14 @@ package assignment5;
 import java.util.List;
 
 public abstract class Critter {
+	public int getX() {
+		return this.x_coord;
+	}
+
+	public int getY() {
+		return this.y_coord;
+	}
+
 	/* NEW FOR PROJECT 5 */
 	public enum CritterShape {
 		CIRCLE,
@@ -236,9 +244,26 @@ public abstract class Critter {
 	 * Executes one world step (i.e. each Critter gets one turn)
 	 */
 	public static void worldTimeStep() {
+		insight = new int[population.size()*2];
+		int pos = 0;
+		for(int x=0; x < population.size(); x++){
+			insight[pos] = population.get(x).x_coord;
+			insight[pos+1] = population.get(x).y_coord;
+			pos += 2;
+		}
+
 		for (Critter c : population) {
 			c.doTimeStep();
 		}
+
+		pos = 0;
+		for(int x=0; x < population.size(); x++){
+			insight[pos] = population.get(x).x_coord;
+			insight[pos+1] = population.get(x).y_coord;
+			pos += 2;
+		}
+
+
 		//check for critters in same spot
 		for (int i=0; i < population.size(); i++) {
 			Critter crit1 = population.get(i);
@@ -318,13 +343,17 @@ public abstract class Critter {
 			c.hasMoved = false;
 		}
 	}
-	
-	public static void displayWorld(Object pane) {} 
+
+
+	//public static void displayWorld(Object pane) {}
 	/* Alternate displayWorld, where you use Main.<pane> to reach into your
 	   display component.
-	   // public static void displayWorld() {}
 	*/
-	
+	public static void displayWorld() {
+		Main.refreshWindow();
+	}
+
+
 	/* create and initialize a Critter subclass
 	 * critter_class_name must be the name of a concrete subclass of Critter, if not
 	 * an InvalidCritterException must be thrown
@@ -351,25 +380,42 @@ public abstract class Critter {
 	}
 	
 	public static List<Critter> getInstances(String critter_class_name) throws InvalidCritterException {
-		return null;
+		Class<?> crit;
+		if(critter_class_name.equals("Crittersgetter")){
+			return population;
+		}
+		try{
+			crit = Class.forName(myPackage + "." + critter_class_name);
+		}
+		catch (ClassNotFoundException e){throw new InvalidCritterException(critter_class_name); }
+
+		List<Critter> result = new java.util.ArrayList<>();
+		for(Critter c: population){
+			if(crit.isInstance(c))
+				result.add(c);
+		}
+		return result;
 	}
 	
 	public static void runStats(List<Critter> critters) {
-		Class<?> critterClass;
-		try{
-			critterClass = Class.forName(myPackage + "." + critter_class_name);
-		}
-		catch (ClassNotFoundException e){
-			throw new InvalidCritterException(critter_class_name);
-		}
-
-		List<Critter> result = new java.util.ArrayList<Critter>();
-		for(Critter c : population){
-			if(critterClass.isInstance(c)){
-				result.add(c);
+		System.out.print("" + critters.size() + " critters as follows -- ");
+		java.util.Map<String, Integer> critter_count = new java.util.HashMap<String, Integer>();
+		for (Critter crit : critters) {
+			String crit_string = crit.toString();
+			Integer old_count = critter_count.get(crit_string);
+			if (old_count == null) {
+				critter_count.put(crit_string,  1);
+			}
+			else {
+				critter_count.put(crit_string, old_count.intValue() + 1);
 			}
 		}
-		return result;
+		String prefix = "";
+		for (String s : critter_count.keySet()) {
+			System.out.print(prefix + s + ":" + critter_count.get(s));
+			prefix = ", ";
+		}
+		System.out.println();
 	}
 	
 	/* the TestCritter class allows some critters to "cheat". If you want to 
