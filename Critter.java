@@ -1,15 +1,17 @@
 package assignment5;
+/*
+ * Critter2 - GUI
+ * Shiv Lalapet
+ * EID: sl39596
+ * Hamza Sharif
+ * EID: mhs2285
+ * Unique: 15495
+ * Spring 2018
+ */
 
 import java.util.List;
 
 public abstract class Critter {
-	public int getX() {
-		return this.x_coord;
-	}
-
-	public int getY() {
-		return this.y_coord;
-	}
 
 	/* NEW FOR PROJECT 5 */
 	public enum CritterShape {
@@ -49,7 +51,13 @@ public abstract class Critter {
 	static {
 		myPackage = Critter.class.getPackage().toString().split(" ")[1];
 	}
-	
+
+	/**
+	 *
+	 * @param direction, which way Critter decides to look
+	 * @param steps, how many spaces Critters looks to (1 or 2 spaces)
+	 * @return String, name of Critter in sight or null
+	 */
 	protected final String look(int direction, boolean steps) {
 		int x = this.x_coord;
 		int y = this.y_coord;
@@ -124,6 +132,11 @@ public abstract class Critter {
 	private boolean hasMoved;
 	private boolean isFighting;
 
+	/**
+	 * helper function for walk and run
+	 * @param steps number of spaces
+	 * @return int, final position on the x-axis
+	 */
 	private final int moveX(int steps){
 		if((x_coord + steps) < 0){
 			return Params.world_width - steps;
@@ -135,6 +148,11 @@ public abstract class Critter {
 			return x_coord += steps;
 	}
 
+	/**
+	 * helper function for walk and run
+	 * @param steps number of spaces
+	 * @return int, final position on the y-axis
+	 */
 	private final int moveY(int steps){
 		if((y_coord + steps) < 0){
 			return Params.world_height - steps;
@@ -146,6 +164,10 @@ public abstract class Critter {
 			return y_coord += steps;
 	}
 
+	/**
+	 * Allows the critter to move one space in a specific direction
+	 * @param direction
+	 */
 	protected final void walk(int direction) {
 		if(this.hasMoved){return;}
 		switch (direction){
@@ -173,7 +195,11 @@ public abstract class Critter {
 		energy -= Params.walk_energy_cost;
 		this.hasMoved = true;
 	}
-	
+
+	/**
+	 * Allows the critter to move 2 spaces at a time
+	 * @param direction
+	 */
 	protected final void run(int direction) {
 		if(this.hasMoved){return;}
 		switch (direction){
@@ -202,7 +228,12 @@ public abstract class Critter {
 		this.hasMoved = true;
 
 	}
-	
+
+	/**
+	 * Allows critter to reproduce. Offspring gets half the energy.
+	 * @param offspring the child that the critter reproduces
+	 * @param direction which direction to insert the offspring in the world
+	 */
 	protected final void reproduce(Critter offspring, int direction) {
 		if(this.energy < Params.min_reproduce_energy){return;}
 		offspring.energy = this.energy / 2;
@@ -239,6 +270,13 @@ public abstract class Critter {
 
 	public abstract void doTimeStep();
 	public abstract boolean fight(String oponent);
+	public int getX() {
+		return this.x_coord;
+	}
+	public int getY() {
+		return this.y_coord;
+	}
+
 
 	/**
 	 * Executes one world step (i.e. each Critter gets one turn)
@@ -246,11 +284,13 @@ public abstract class Critter {
 	public static void worldTimeStep() {
 		insight = new int[population.size()*2];
 		int pos = 0;
+
 		for(int x=0; x < population.size(); x++){
 			insight[pos] = population.get(x).x_coord;
 			insight[pos+1] = population.get(x).y_coord;
 			pos += 2;
 		}
+
 
 		for (Critter c : population) {
 			c.doTimeStep();
@@ -262,7 +302,6 @@ public abstract class Critter {
 			insight[pos+1] = population.get(x).y_coord;
 			pos += 2;
 		}
-
 
 		//check for critters in same spot
 		for (int i=0; i < population.size(); i++) {
@@ -378,7 +417,13 @@ public abstract class Critter {
 			throw new InvalidCritterException(critter_class_name);
 		}
 	}
-	
+
+	/**
+	 * gets the next critter in arraylist of critters
+	 * @param critter_class_name the name of the arraylist
+	 * @return the list of critters
+	 * @throws InvalidCritterException
+	 */
 	public static List<Critter> getInstances(String critter_class_name) throws InvalidCritterException {
 		Class<?> crit;
 		if(critter_class_name.equals("Crittersgetter")){
@@ -396,15 +441,21 @@ public abstract class Critter {
 		}
 		return result;
 	}
-	
-	public static void runStats(List<Critter> critters) {
-		System.out.print("" + critters.size() + " critters as follows -- ");
+
+	/**
+	 * Displays how many of a specified critters are in the world
+	 * @param critters the list of critters
+	 * @return how many of critter x is in the world
+	 */
+	public static String runStats(List<Critter> critters) {
+		String output = "";
+		output += "" + critters.size() + " critters as follows -- ";
 		java.util.Map<String, Integer> critter_count = new java.util.HashMap<String, Integer>();
 		for (Critter crit : critters) {
 			String crit_string = crit.toString();
 			Integer old_count = critter_count.get(crit_string);
 			if (old_count == null) {
-				critter_count.put(crit_string,  1);
+				critter_count.put(crit_string, 1);
 			}
 			else {
 				critter_count.put(crit_string, old_count.intValue() + 1);
@@ -412,12 +463,11 @@ public abstract class Critter {
 		}
 		String prefix = "";
 		for (String s : critter_count.keySet()) {
-			System.out.print(prefix + s + ":" + critter_count.get(s));
+			output += prefix + s + ":" + critter_count.get(s);
 			prefix = ", ";
 		}
-		System.out.println();
+		return output;
 	}
-	
 	/* the TestCritter class allows some critters to "cheat". If you want to 
 	 * create tests of your Critter model, you can create subclasses of this class
 	 * and then use the setter functions contained here. 
